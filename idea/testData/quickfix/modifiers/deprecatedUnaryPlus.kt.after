@@ -1,0 +1,6 @@
+// "Rename to 'unaryPlus'" "true"
+operator fun String.unaryPlus() = this
+
+fun a() {
+    "".unaryPlus()
+}
