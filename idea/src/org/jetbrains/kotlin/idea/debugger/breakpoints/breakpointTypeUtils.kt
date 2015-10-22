@@ -41,9 +41,6 @@ import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-import org.jetbrains.kotlin.resolve.inline.InlineUtil
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.*
 
 fun canPutAt(file: VirtualFile, line: Int, project: Project, breakpointTypeClass: Class<*>): Boolean {
@@ -58,7 +55,7 @@ fun canPutAt(file: VirtualFile, line: Int, project: Project, breakpointTypeClass
     var result: Class<*>? = null
     XDebuggerUtil.getInstance().iterateLine(project, document, line, fun (el: PsiElement): Boolean {
         // avoid comments
-        if (el is PsiWhiteSpace || PsiTreeUtil.getParentOfType(el, javaClass<PsiComment>(), false) != null) {
+        if (el is PsiWhiteSpace || PsiTreeUtil.getParentOfType(el, PsiComment::class.java, false) != null) {
             return true
         }
 
