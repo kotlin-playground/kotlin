@@ -88,7 +88,7 @@ public class InnerClassInfoGenTest extends CodegenTestCase {
         checkAccess("A", "Annotation", ACC_PUBLIC | ACC_STATIC | ACC_INTERFACE | ACC_ABSTRACT | ACC_ANNOTATION);
         checkAccess("A", "Enum", ACC_PUBLIC | ACC_STATIC | ACC_FINAL | ACC_ENUM);
         checkAccess("A", "Trait", ACC_PUBLIC | ACC_STATIC | ACC_INTERFACE | ACC_ABSTRACT);
-        checkAccess("A$Trait", "DefaultImpls", ACC_PUBLIC | ACC_STATIC | ACC_FINAL);
+        checkAccess("A$Trait", "DefaultImpls", ACC_PUBLIC | ACC_FINAL);
 
         checkAccess("A", "OpenStaticClass", ACC_PUBLIC | ACC_STATIC);
         checkAccess("A", "FinalStaticClass", ACC_PUBLIC | ACC_STATIC | ACC_FINAL);
