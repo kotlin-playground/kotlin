@@ -68,7 +68,12 @@ public class KotlinSteppingCommandProvider: JvmSteppingCommandProvider() {
         val file = sourcePosition.file as? KtFile ?: return null
         if (sourcePosition.line < 0) return null
 
-        val containingFunction = sourcePosition.elementAt.getParentOfType<KtNamedFunction>(false) ?: return null
+        var containingFunction = sourcePosition.elementAt.getParentOfType<KtNamedFunction>(false)
+        while(containingFunction != null && containingFunction.isLocal) {
+            containingFunction = containingFunction.parent.getParentOfType<KtNamedFunction>(false)
+        }
+
+        if (containingFunction == null) return null
 
         val startLineNumber = containingFunction.getLineNumber(true)
         val endLineNumber = containingFunction.getLineNumber(false)
@@ -221,11 +226,12 @@ public class KotlinSteppingCommandProvider: JvmSteppingCommandProvider() {
     private fun getInlineArgumentsIfAny(inlineFunctionCalls: List<KtCallExpression>): List<KtFunction> {
         return inlineFunctionCalls.flatMap {
             it.valueArguments
-                    .map { it.getArgumentExpression()  }
-                    .filterIsInstance<KtFunctionLiteralExpression>()
-                    .map { it.functionLiteral }
+                    .map { getArgumentExpression(it)  }
+                    .filterIsInstance<KtFunction>()
         }
     }
+
+    private fun getArgumentExpression(it: ValueArgument) = (it.getArgumentExpression() as? KtFunctionLiteralExpression)?.functionLiteral ?: it.getArgumentExpression()
 
     private fun getInlineFunctionCallsIfAny(sourcePosition: SourcePosition): List<KtCallExpression> {
         val file = sourcePosition.file as? KtFile ?: return emptyList()
