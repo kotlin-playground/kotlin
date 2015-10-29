@@ -69,9 +69,9 @@ sealed class KtLightFieldImpl(
 
     override fun hasModifierProperty(@NonNls name: String) = delegate.hasModifierProperty(name)
 
-    override fun getText() = delegate.text
+    override fun getText() = origin?.text ?: delegate.text
 
-    override fun getTextRange() = TextRange(-1, -1)
+    override fun getTextRange() = origin?.textRange ?: TextRange(0, 0)
 
     override fun isValid() = containingClass.isValid
 
@@ -82,7 +82,7 @@ sealed class KtLightFieldImpl(
     override fun getDelegate() = delegate
 
     override fun getNavigationElement() = origin ?: super.getNavigationElement()
-
+    
     override fun isEquivalentTo(another: PsiElement?): Boolean {
         if (another is KtLightField && origin == another.getOrigin() && delegate == another.getDelegate()) {
             return true
