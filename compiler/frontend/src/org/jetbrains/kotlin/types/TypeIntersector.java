@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystem;
-import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemImpl;
+import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilderImpl;
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope;
 import org.jetbrains.kotlin.resolve.scopes.KtScope;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
@@ -198,7 +198,7 @@ public class TypeIntersector {
             };
             processAllTypeParameters(withParameters, Variance.INVARIANT, processor);
             processAllTypeParameters(expected, Variance.INVARIANT, processor);
-            ConstraintSystem.Builder constraintSystem = new ConstraintSystemImpl();
+            ConstraintSystem.Builder constraintSystem = new ConstraintSystemBuilderImpl();
             constraintSystem.registerTypeVariables(parameters.keySet(), new Function1<TypeParameterDescriptor, TypeParameterDescriptor>() {
                 @Override
                 public TypeParameterDescriptor invoke(TypeParameterDescriptor descriptor) {
