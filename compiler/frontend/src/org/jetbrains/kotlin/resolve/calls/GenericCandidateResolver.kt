@@ -104,7 +104,7 @@ class GenericCandidateResolver(private val argumentTypeResolver: ArgumentTypeRes
         candidateCall.setConstraintSystem(constraintSystem)
 
         // Solution
-        val hasContradiction = constraintSystem.getStatus().hasContradiction()
+        val hasContradiction = constraintSystem.status.hasContradiction()
         if (!hasContradiction) {
             return INCOMPLETE_TYPE_INFERENCE
         }
@@ -214,7 +214,7 @@ class GenericCandidateResolver(private val argumentTypeResolver: ArgumentTypeRes
         }
         val resultingSystem = constraintSystem.build()
         resolvedCall.setConstraintSystem(resultingSystem)
-        resolvedCall.setResultingSubstitutor(resultingSystem.getResultingSubstitutor())
+        resolvedCall.setResultingSubstitutor(resultingSystem.resultingSubstitutor)
     }
 
     private fun <D : CallableDescriptor> addConstraintForFunctionLiteral(
@@ -227,7 +227,7 @@ class GenericCandidateResolver(private val argumentTypeResolver: ArgumentTypeRes
         val argumentExpression = valueArgument.getArgumentExpression() ?: return
 
         val effectiveExpectedType = getEffectiveExpectedType(valueParameterDescriptor, valueArgument)
-        var expectedType = constraintSystem.build().getCurrentSubstitutor().substitute(effectiveExpectedType, Variance.INVARIANT)
+        var expectedType = constraintSystem.build().currentSubstitutor.substitute(effectiveExpectedType, Variance.INVARIANT)
         if (expectedType == null || TypeUtils.isDontCarePlaceholder(expectedType)) {
             expectedType = argumentTypeResolver.getShapeTypeOfFunctionLiteral(functionLiteral, context.scope, context.trace, false)
         }
@@ -289,7 +289,7 @@ class GenericCandidateResolver(private val argumentTypeResolver: ArgumentTypeRes
             context: CallCandidateResolutionContext<D>,
             effectiveExpectedType: KotlinType
     ): KotlinType? {
-        val substitutedType = constraintSystem.build().getCurrentSubstitutor().substitute(effectiveExpectedType, Variance.INVARIANT)
+        val substitutedType = constraintSystem.build().currentSubstitutor.substitute(effectiveExpectedType, Variance.INVARIANT)
         if (substitutedType != null && !TypeUtils.isDontCarePlaceholder(substitutedType))
             return substitutedType
 
