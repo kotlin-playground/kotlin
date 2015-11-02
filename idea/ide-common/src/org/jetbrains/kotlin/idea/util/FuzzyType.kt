@@ -136,7 +136,7 @@ class FuzzyType(
         val otherSubstitutedType = substitutor.substitute(otherType.type, Variance.INVARIANT) ?: return null
         if (!substitutedType.checkInheritance(otherSubstitutedType)) return null
 
-        val substitution = constraintSystem.typeVariables.toMap({ it.typeConstructor }) {
+        val substitution = constraintSystem.typeParameterDescriptors.toMap({ it.typeConstructor }) {
             val type = it.defaultType
             val solution = substitutor.substitute(type, Variance.INVARIANT)
             TypeProjectionImpl(if (solution != null && !ErrorUtils.containsUninferredParameter(solution)) solution else type)
