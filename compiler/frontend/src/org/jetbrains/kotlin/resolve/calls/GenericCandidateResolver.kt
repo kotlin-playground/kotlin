@@ -165,7 +165,7 @@ class GenericCandidateResolver(private val argumentTypeResolver: ArgumentTypeRes
         val candidateWithFreshVariables = FunctionDescriptorUtil.alphaConvertTypeParameters(candidateDescriptor)
         val conversion = candidateDescriptor.getTypeParameters().zip(candidateWithFreshVariables.getTypeParameters()).toMap()
 
-        val freshVariables = nestedTypeVariables.map { conversion[it] }.filterNotNull()
+        val freshVariables = nestedTypeVariables.map { conversion[argumentConstraintSystem.variableToDescriptor(it)] }.filterNotNull()
         builder.registerTypeVariables(freshVariables, external = true)
 
         builder.addSubtypeConstraint(candidateWithFreshVariables.getReturnType(), effectiveExpectedType, constraintPosition)
