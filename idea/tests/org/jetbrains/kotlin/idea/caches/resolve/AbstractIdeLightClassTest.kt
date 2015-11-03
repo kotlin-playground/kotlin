@@ -47,8 +47,11 @@ abstract class AbstractIdeLightClassTest : KotlinLightCodeInsightFixtureTestCase
                 },
                 normalizeText = {
                     //NOTE: ide and compiler differ in names generated for parameters with unspecified names
-                    it.replace("java.lang.String s,", "java.lang.String p,").replace("java.lang.String s)", "java.lang.String p)")
-                            .replace("java.lang.String s1", "java.lang.String p1").replace("java.lang.String s2", "java.lang.String p2")
+                    it
+                            .replace("java.lang.String s,", "java.lang.String p,")
+                            .replace("java.lang.String s)", "java.lang.String p)")
+                            .replace("java.lang.String s1", "java.lang.String p1")
+                            .replace("java.lang.String s2", "java.lang.String p2")
                 }
         )
     }
