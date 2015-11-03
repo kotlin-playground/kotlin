@@ -6645,6 +6645,33 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 }
             }
 
+            @TestMetadata("compiler/testData/diagnostics/tests/generics/innerClasses")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class InnerClasses extends AbstractDiagnosticsTest {
+                public void testAllFilesPresentInInnerClasses() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/generics/innerClasses"), Pattern.compile("^(.+)\\.kt$"), true);
+                }
+
+                @TestMetadata("innerVariance.kt")
+                public void testInnerVariance() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/generics/innerClasses/innerVariance.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("simple.kt")
+                public void testSimple() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/generics/innerClasses/simple.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("simpleOut.kt")
+                public void testSimpleOut() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/generics/innerClasses/simpleOut.kt");
+                    doTest(fileName);
+                }
+            }
+
             @TestMetadata("compiler/testData/diagnostics/tests/generics/nullability")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
