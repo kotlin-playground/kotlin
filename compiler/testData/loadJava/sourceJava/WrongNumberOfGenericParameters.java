@@ -8,6 +8,7 @@ public interface WrongNumberOfGenericParameters {
     Zero<String> z();
 
     One o0();
+    // Java resolve suppose it just has then only 'String' argument
     One<String, String> o2();
 
     // This does not produce the expected result, because IDEA thinks Two<X> is a raw type
