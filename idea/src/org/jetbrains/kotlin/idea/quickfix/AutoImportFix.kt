@@ -69,9 +69,9 @@ internal abstract class AutoImportFixBase<T: KtExpression>(expression: T) :
             timestampCalculator = { PsiModificationTracker.SERVICE.getInstance(element.project).modificationCount }
     )
 
+    protected abstract val importNames: Collection<Name>
     protected abstract fun getSupportedErrors(): Collection<DiagnosticFactory<*>>
     protected abstract fun getCallTypeAndReceiver(): CallTypeAndReceiver<*, *>
-    protected abstract fun getImportNames(): Collection<Name>
 
     override fun showHint(editor: Editor): Boolean {
         if (!element.isValid() || isOutdated()) return false
@@ -112,10 +112,9 @@ internal abstract class AutoImportFixBase<T: KtExpression>(expression: T) :
 
         if (callTypeAndReceiver is CallTypeAndReceiver.UNKNOWN) return emptyList()
 
-        var referenceNames = getImportNames()
-        if (referenceNames.isEmpty()) return emptyList()
+        if (importNames.isEmpty()) return emptyList()
 
-        return referenceNames.flatMapTo(LinkedHashSet()) {
+        return importNames.flatMapTo(LinkedHashSet()) {
             computeSuggestionsForName(it, callTypeAndReceiver)
         }
     }
@@ -188,29 +187,29 @@ internal abstract class AutoImportFixBase<T: KtExpression>(expression: T) :
 internal class AutoImportFix(expression: KtSimpleNameExpression) : AutoImportFixBase<KtSimpleNameExpression>(expression) {
     override fun getCallTypeAndReceiver() = CallTypeAndReceiver.detect(element)
 
-    override fun getImportNames(): Collection<Name> {
+    override val importNames: Collection<Name> = run {
         if (element.getIdentifier() == null) {
             val conventionName = KtPsiUtil.getConventionName(element)
             if (conventionName != null) {
                 if (element is KtOperationReferenceExpression) {
                     val elementType = element.firstChild.node.elementType
                     if (OperatorConventions.ASSIGNMENT_OPERATIONS.containsKeyRaw(elementType)) {
-                        val conterpart = OperatorConventions.ASSIGNMENT_OPERATION_COUNTERPARTS.getRaw(elementType)
-                        val counterpartName = OperatorConventions.BINARY_OPERATION_NAMES.get(conterpart)
+                        val counterpart = OperatorConventions.ASSIGNMENT_OPERATION_COUNTERPARTS.getRaw(elementType)
+                        val counterpartName = OperatorConventions.BINARY_OPERATION_NAMES.get(counterpart)
                         if (counterpartName != null) {
-                            return listOf(conventionName, counterpartName)
+                            return@run listOf(conventionName, counterpartName)
                         }
                     }
                 }
 
-                return conventionName.singletonOrEmptyList()
+                return@run conventionName.singletonOrEmptyList()
             }
         }
         else if (Name.isValidIdentifier(element.getReferencedName())) {
-            return Name.identifier(element.getReferencedName()).singletonOrEmptyList()
+            return@run Name.identifier(element.getReferencedName()).singletonOrEmptyList()
         }
 
-        return emptyList()
+        emptyList<Name>()
     }
 
     override fun getSupportedErrors() = ERRORS
@@ -226,7 +225,7 @@ internal class AutoImportFix(expression: KtSimpleNameExpression) : AutoImportFix
 }
 
 internal class MissingInvokeAutoImportFix(expression: KtExpression) : AutoImportFixBase<KtExpression>(expression) {
-    override fun getImportNames() = OperatorNameConventions.INVOKE.singletonList()
+    override val importNames = OperatorNameConventions.INVOKE.singletonList()
 
     override fun getCallTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element)
 
@@ -240,21 +239,19 @@ internal class MissingInvokeAutoImportFix(expression: KtExpression) : AutoImport
     }
 }
 
-internal class MissingArrayAccessorAutoImportFix(element: KtArrayAccessExpression, val names: Collection<Name>) :
+internal class MissingArrayAccessorAutoImportFix(element: KtArrayAccessExpression, override val importNames: Collection<Name>) :
         AutoImportFixBase<KtArrayAccessExpression>(element) {
-    override fun getImportNames() = names
-
     override fun getCallTypeAndReceiver() =
             CallTypeAndReceiver.OPERATOR(element.arrayExpression!!)
 
     override fun getSupportedErrors() = ERRORS
 
     companion object : KotlinSingleIntentionActionFactory() {
-        fun importName(diagnostic: Diagnostic): Name {
+        private fun importName(diagnostic: Diagnostic): Name {
             return when (diagnostic.factory) {
                 Errors.NO_GET_METHOD -> OperatorNameConventions.GET
                 Errors.NO_SET_METHOD -> OperatorNameConventions.SET
-                else -> throw IllegalStateException("Should be called for other diagnostics")
+                else -> throw IllegalStateException("Shouldn't be called for other diagnostics")
             }
         }
 
@@ -273,10 +270,9 @@ internal class MissingArrayAccessorAutoImportFix(element: KtArrayAccessExpressio
     }
 }
 
-internal class MissingDelegateAccessorsAutoImportFix(element: KtExpression, val names: Collection<Name>, val solveSeveralProblems: Boolean) :
+internal class MissingDelegateAccessorsAutoImportFix(
+        element: KtExpression, override val importNames: Collection<Name>, private val solveSeveralProblems: Boolean) :
         AutoImportFixBase<KtExpression>(element) {
-    override fun getImportNames() = names
-
     override fun getCallTypeAndReceiver() = CallTypeAndReceiver.DELEGATE(element)
 
     override fun createAction(project: Project, editor: Editor): KotlinAddImportAction {
@@ -290,7 +286,7 @@ internal class MissingDelegateAccessorsAutoImportFix(element: KtExpression, val 
     override fun getSupportedErrors() = ERRORS
 
     companion object : KotlinSingleIntentionActionFactory() {
-        fun importNames(diagnostics: Collection<Diagnostic>): Collection<Name> {
+        private fun importNames(diagnostics: Collection<Diagnostic>): Collection<Name> {
             return diagnostics.map {
                 val missingMethodSignature = Errors.DELEGATE_SPECIAL_FUNCTION_MISSING.cast(it).a
                 if (missingMethodSignature.startsWith(OperatorNameConventions.GET_VALUE.identifier))
@@ -316,10 +312,8 @@ internal class MissingDelegateAccessorsAutoImportFix(element: KtExpression, val 
     }
 }
 
-internal class MissingComponentsAutoImportFix(element: KtExpression, val names: Collection<Name>, val solveSeveralProblems: Boolean) :
+internal class MissingComponentsAutoImportFix(element: KtExpression, override val importNames: Collection<Name>, private val solveSeveralProblems: Boolean) :
         AutoImportFixBase<KtExpression>(element) {
-    override fun getImportNames() = names
-
     override fun getCallTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element)
 
     override fun createAction(project: Project, editor: Editor): KotlinAddImportAction {
