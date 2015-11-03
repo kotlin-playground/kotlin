@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.jps.incremental
 
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.containers.MultiMap
 import com.intellij.util.io.*
 import gnu.trove.THashSet
 import org.jetbrains.annotations.TestOnly
@@ -36,8 +37,8 @@ import org.jetbrains.kotlin.load.kotlin.ModuleMapping
 import org.jetbrains.kotlin.load.kotlin.header.*
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache
 import org.jetbrains.kotlin.load.kotlin.incremental.components.JvmPackagePartProto
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
-import org.jetbrains.kotlin.resolve.jvm.JvmClassName.byInternalName
 import org.jetbrains.kotlin.serialization.jvm.BitEncoding
 import org.jetbrains.org.objectweb.asm.*
 import java.io.DataInput
@@ -313,13 +314,20 @@ public class IncrementalCacheImpl(
             if (oldData == null ||
                 !Arrays.equals(bytes, oldData.bytes) ||
                 !Arrays.equals(strings, oldData.strings) ||
-                isPackage != oldData.isPackageFacade) {
+                isPackage != oldData.isPackageFacade
+            ) {
                 storage[key] = data
             }
 
-            return ChangesInfo(protoChanged = oldData == null ||
-                                              !checkChangesIsOpenPart ||
-                                              difference(oldData, data) != DifferenceKind.NONE)
+            if (oldData == null || !checkChangesIsOpenPart) return ChangesInfo(protoChanged = true)
+
+            val diff = difference(oldData, data)
+            val fqName = if (isPackage) className.packageFqName else className.fqNameForClassNameWithoutDollars
+
+            val map = MultiMap<FqName, DifferenceKind>()
+            map.putValue(fqName, diff)
+
+            return ChangesInfo(protoChanged = diff != DifferenceKind.NONE, changes = map)
         }
 
         public fun contains(className: JvmClassName): Boolean =
@@ -635,10 +643,11 @@ public class IncrementalCacheImpl(
 }
 
 data class ChangesInfo(
-        public val protoChanged: Boolean = false,
-        public val constantsChanged: Boolean = false,
-        public val inlineChanged: Boolean = false,
-        public val inlineAdded: Boolean = false
+        val protoChanged: Boolean = false,
+        val constantsChanged: Boolean = false,
+        val inlineChanged: Boolean = false,
+        val inlineAdded: Boolean = false,
+        val changes: MultiMap<FqName, DifferenceKind> = MultiMap.empty()
 ) {
     companion object {
         public val NO_CHANGES: ChangesInfo = ChangesInfo()
