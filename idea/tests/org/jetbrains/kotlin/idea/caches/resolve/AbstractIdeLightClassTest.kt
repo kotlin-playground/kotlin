@@ -16,7 +16,9 @@
 
 package org.jetbrains.kotlin.idea.caches.resolve
 
+import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.*
 import com.intellij.psi.impl.compiled.ClsModifierListImpl
 import com.intellij.psi.search.GlobalSearchScope
@@ -25,11 +27,39 @@ import org.jetbrains.kotlin.asJava.KtLightMethod
 import org.jetbrains.kotlin.asJava.LightClassTestCommon
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.jetbrains.kotlin.test.MockLibraryUtil
 import org.jetbrains.kotlin.idea.test.KotlinWithJdkAndRuntimeLightProjectDescriptor
 import org.junit.Assert
 import java.io.File
 
 abstract class AbstractIdeLightClassTest : KotlinLightCodeInsightFixtureTestCase() {
+    override fun setUp() {
+        super.setUp()
+
+        val testName = getTestName(false)
+        if (testName.startsWith("AllFilesPresentIn")) return
+
+        val libraryName = "libFor" + testName
+        val filePath = "${KotlinTestUtils.getTestsRoot(this)}/${getTestName(false)}.kt"
+
+        Assert.assertTrue("File doesn't exist $filePath", File(filePath).exists())
+
+        val libraryJar = MockLibraryUtil.compileLibraryToJar(filePath, libraryName, false, false
+        )
+        val jarUrl = "jar://" + FileUtilRt.toSystemIndependentName(libraryJar.absolutePath) + "!/"
+        ModuleRootModificationUtil.addModuleLibrary(myFixture.module, jarUrl)
+
+        println(myFixture.module)
+    }
+
+    override fun tearDown() {
+//        ModuleRootModificationUtil.de(myFixture.module, jarUrl)
+
+        super.tearDown()
+
+
+    }
 
     fun doTest(testDataPath: String) {
         myFixture.configureByFile(testDataPath)

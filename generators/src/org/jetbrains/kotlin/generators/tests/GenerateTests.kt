@@ -772,7 +772,7 @@ fun main(args: Array<String>) {
 
     testGroup("idea/tests", "compiler/testData") {
         testClass<AbstractIdeLightClassTest>() {
-            model("asJava/lightClasses", excludeDirs = listOf("delegation"))
+            model("asJava/lightClasses", excludeDirs = listOf("delegation"), withTestRootMethod = true)
         }
     }
 
@@ -1062,7 +1062,8 @@ private class TestGroup(val testsRoot: String, val testDataRoot: String) {
                 testClassName: String? = null,
                 targetBackend: TargetBackend = TargetBackend.ANY,
                 excludeDirs: List<String> = listOf(),
-                filenameStartsLowerCase: Boolean? = null
+                filenameStartsLowerCase: Boolean? = null,
+                withTestRootMethod: Boolean = false
         ) {
             val rootFile = File(testDataRoot + "/" + relativeRootPath)
             val compiledPattern = Pattern.compile(pattern)
@@ -1074,7 +1075,8 @@ private class TestGroup(val testsRoot: String, val testDataRoot: String) {
                     }
                     else {
                         SimpleTestClassModel(rootFile, recursive, excludeParentDirs,
-                                             compiledPattern, filenameStartsLowerCase, testMethod, className, targetBackend, excludeDirs)
+                                             compiledPattern, filenameStartsLowerCase, testMethod, className, 
+                                             targetBackend, excludeDirs, withTestRootMethod)
                     }
             )
         }

@@ -41,6 +41,10 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
         doTest(fileName);
     }
 
+    public String getTestsRoot() {
+        return "compiler/testData/asJava/lightClasses";
+    }
+
     @TestMetadata("compiler/testData/asJava/lightClasses/facades")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -65,6 +69,10 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
         public void testSingleJvmClassName() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/facades/SingleJvmClassName.kt");
             doTest(fileName);
+        }
+
+        public String getTestsRoot() {
+            return "compiler/testData/asJava/lightClasses/facades";
         }
     }
 
@@ -195,6 +203,10 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/nullabilityAnnotations/VoidReturn.kt");
             doTest(fileName);
         }
+
+        public String getTestsRoot() {
+            return "compiler/testData/asJava/lightClasses/nullabilityAnnotations";
+        }
     }
 
     @TestMetadata("compiler/testData/asJava/lightClasses/object")
@@ -209,6 +221,10 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
         public void testSimpleObject() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/object/SimpleObject.kt");
             doTest(fileName);
+        }
+
+        public String getTestsRoot() {
+            return "compiler/testData/asJava/lightClasses/object";
         }
     }
 
@@ -230,6 +246,10 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
         public void testSimple() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/publicField/Simple.kt");
             doTest(fileName);
+        }
+
+        public String getTestsRoot() {
+            return "compiler/testData/asJava/lightClasses/publicField";
         }
     }
 }
