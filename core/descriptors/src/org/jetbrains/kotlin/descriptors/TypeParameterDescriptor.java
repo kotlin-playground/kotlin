@@ -46,4 +46,6 @@ public interface TypeParameterDescriptor extends ClassifierDescriptor {
     TypeParameterDescriptor substitute(@NotNull TypeSubstitutor substitutor);
 
     int getIndex();
+
+    boolean isCopyFromOuterDeclaration();
 }
