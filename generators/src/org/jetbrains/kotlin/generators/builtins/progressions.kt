@@ -22,61 +22,115 @@ import org.jetbrains.kotlin.generators.builtins.ProgressionKind.*
 import java.io.PrintWriter
 
 class GenerateProgressions(out: PrintWriter) : BuiltInsSourceGenerator(out) {
-    override fun generateBody() {
-        for (kind in ProgressionKind.values()) {
-            val t = kind.capitalized
-            val progression = "${t}Progression"
 
-            val incrementType = progressionIncrementType(kind)
+    private fun generateDiscreteBody(kind: ProgressionKind) {
+        require(kind != FLOAT && kind != DOUBLE)
 
-            fun compare(v: String) = areEqualNumbers(kind, v)
+        val t = kind.capitalized
+        val progression = "${t}Progression"
 
-            val zero = when (kind) {
-                FLOAT -> "0.0f"
-                DOUBLE -> "0.0"
-                LONG -> "0L"
-                else -> "0"
-            }
-            val checkNaN =
-                    if (kind == FLOAT || kind == DOUBLE)
-                        "if (java.lang.$t.isNaN(increment)) throw IllegalArgumentException(\"Increment must be not NaN\")\n        "
-                    else ""
-            val checkZero = "if (increment == $zero) throw IllegalArgumentException(\"Increment must be non-zero\")"
-            val constructor = checkNaN + checkZero
+        val incrementType = progressionIncrementType(kind)
+        fun compare(v: String) = areEqualNumbers(kind, v)
 
-            val hashCode = when (kind) {
-                BYTE, CHAR, SHORT -> "=\n" +
-                "        if (isEmpty()) -1 else (31 * (31 * start.toInt() + endInclusive.toInt()) + increment)"
-                INT -> "=\n" +
-                "        if (isEmpty()) -1 else (31 * (31 * start + endInclusive) + increment)"
-                LONG -> "=\n" +
-                "        if (isEmpty()) -1 else (31 * (31 * ${hashLong("start")} + ${hashLong("endInclusive")}) + ${hashLong("increment")}).toInt()"
-                FLOAT -> "=\n" +
-                "        if (isEmpty()) -1 else (31 * (31 * ${floatToIntBits("start")} + ${floatToIntBits("endInclusive")}) + ${floatToIntBits("increment")})"
-                DOUBLE -> "{\n" +
-                "        if (isEmpty()) return -1\n" +
-                "        var temp = ${doubleToLongBits("start")}\n" +
-                "        var result = ${hashLong("temp")}\n" +
-                "        temp = ${doubleToLongBits("endInclusive")}\n" +
-                "        result = 31 * result + ${hashLong("temp")}\n" +
-                "        temp = ${doubleToLongBits("increment")}\n" +
-                "        return (31 * result + ${hashLong("temp")}).toInt()\n" +
-                "    }"
-            }
+        val zero = when (kind) {
+            LONG -> "0L"
+            else -> "0"
+        }
+        val checkZero = "if (increment == $zero) throw IllegalArgumentException(\"Increment must be non-zero\")"
 
-            if (kind == FLOAT || kind == DOUBLE) {
-                out.println("""@Deprecated("This progression implementation has unclear semantics and will be removed soon.", level = DeprecationLevel.WARNING)""")
-                out.println("""@Suppress("DEPRECATION_ERROR")""")
-            }
+        val hashCode = "=\n" + when (kind) {
+            BYTE, CHAR, SHORT ->
+                "        if (isEmpty()) -1 else (31 * (31 * first.toInt() + last.toInt()) + increment)"
+            INT ->
+                "        if (isEmpty()) -1 else (31 * (31 * first + last) + increment)"
+            LONG ->
+                "        if (isEmpty()) -1 else (31 * (31 * ${hashLong("first")} + ${hashLong("last")}) + ${hashLong("increment")}).toInt()"
+            else -> throw IllegalArgumentException()
+        }
 
-            if (kind == SHORT || kind == BYTE) {
-                out.println("""@Deprecated("Use IntProgression instead.", ReplaceWith("IntProgression"), level = DeprecationLevel.WARNING)""")
-            }
-
-            out.println(
-"""/**
+        if (kind == SHORT || kind == BYTE) {
+            out.println("""@Deprecated("Use IntProgression instead.", ReplaceWith("IntProgression"), level = DeprecationLevel.WARNING)""")
+        }
+        out.println(
+                """/**
  * A progression of values of type `$t`.
  */
+public open class $progression private constructor(
+        val first: $t,
+        val last: $t,
+        override val increment: $incrementType,
+        _dummy: Boolean
+) : Progression<$t> /*, Iterable<$t> */ {
+    init {
+        $checkZero
+    }
+
+    public constructor(start: $t, endInclusive: $t, increment: $incrementType) :
+        this(start, kotlin.internal.getProgressionFinalElement(start.to$incrementType(), endInclusive.to$incrementType(), increment).to$t(), increment, false)
+
+    @Deprecated("Use first instead.", ReplaceWith("first"))
+    public override val start: $t get() = first
+
+    /**
+     * The end value of the progression (inclusive).
+     */
+    @Deprecated("Use last instead.", ReplaceWith("last"))
+    public override val end: $t get() = last
+
+    override fun iterator(): ${t}Iterator = ${t}ProgressionIterator(first, last, increment)
+
+    /** Checks if the progression is empty. */
+    public open fun isEmpty(): Boolean = if (increment > 0) first > last else first < last
+
+    override fun equals(other: Any?): Boolean =
+        other is $progression && (isEmpty() && other.isEmpty() ||
+        ${compare("first")} && ${compare("last")} && ${compare("increment")})
+
+    override fun hashCode(): Int $hashCode
+
+    override fun toString(): String = ${"if (increment > 0) \"\$first..\$last step \$increment\" else \"\$first downTo \$last step \${-increment}\""}
+}""")
+        out.println()
+
+    }
+
+    private fun generateFloatingPointBody(kind: ProgressionKind) {
+        require(kind == FLOAT || kind == DOUBLE)
+
+        val t = kind.capitalized
+        val progression = "${t}Progression"
+
+        val incrementType = progressionIncrementType(kind)
+
+        fun compare(v: String) = areEqualNumbers(kind, v)
+
+        val zero = when (kind) {
+            FLOAT -> "0.0f"
+            else -> "0.0"
+        }
+        val constructor = "if (java.lang.$t.isNaN(increment)) throw IllegalArgumentException(\"Increment must be not NaN\")\n" +
+                          "        if (increment == $zero) throw IllegalArgumentException(\"Increment must be non-zero\")"
+
+        val hashCode = when (kind) {
+            FLOAT -> "=\n" +
+                     "        if (isEmpty()) -1 else (31 * (31 * ${floatToIntBits("start")} + ${floatToIntBits("endInclusive")}) + ${floatToIntBits("increment")})"
+            else -> "{\n" +
+                      "        if (isEmpty()) return -1\n" +
+                      "        var temp = ${doubleToLongBits("start")}\n" +
+                      "        var result = ${hashLong("temp")}\n" +
+                      "        temp = ${doubleToLongBits("endInclusive")}\n" +
+                      "        result = 31 * result + ${hashLong("temp")}\n" +
+                      "        temp = ${doubleToLongBits("increment")}\n" +
+                      "        return (31 * result + ${hashLong("temp")}).toInt()\n" +
+                      "    }"
+        }
+
+
+        out.println(
+                """/**
+ * A progression of values of type `$t`.
+ */
+@Deprecated("This progression implementation has unclear semantics and will be removed soon.", level = DeprecationLevel.WARNING)
 public open class $progression(
         override val start: $t,
                  val endInclusive: $t,
@@ -105,7 +159,16 @@ public open class $progression(
 
     override fun toString(): String = ${"if (increment > 0) \"\$start..\$endInclusive step \$increment\" else \"\$start downTo \$endInclusive step \${-increment}\""}
 }""")
-            out.println()
+        out.println()
+
+    }
+
+    override fun generateBody() {
+        for (kind in ProgressionKind.values) {
+            if (kind == FLOAT || kind == DOUBLE)
+                generateFloatingPointBody(kind)
+            else
+                generateDiscreteBody(kind)
         }
     }
 }
