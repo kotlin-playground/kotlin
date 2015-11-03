@@ -66,7 +66,7 @@ public class KotlinConfidenceTest extends LightCompletionTestCase {
         TestUtilsKt.unInvalidateBuiltinsAndStdLib(getProject(), new RunnableWithException() {
             @Override
             public void run() throws Exception {
-                JetConfidenceTest.super.tearDown();
+                KotlinConfidenceTest.super.tearDown();
             }
         });
     }
