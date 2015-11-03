@@ -94,4 +94,8 @@ public interface ClassDescriptor extends ClassifierDescriptor, MemberDescriptor,
 
     @Nullable
     ConstructorDescriptor getUnsubstitutedPrimaryConstructor();
+
+    @ReadOnly
+    @NotNull
+    List<TypeParameterDescriptor> getDeclaredTypeParameters();
 }
