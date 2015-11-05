@@ -66,6 +66,7 @@ public class IndexedParametersSubstitution(
     private val parameters: Array<TypeParameterDescriptor>,
     private val arguments: Array<TypeProjection>
 ) : TypeSubstitution() {
+    val map = parameters.map { it.typeConstructor }.zip(arguments).toMap()
     init {
         assert(parameters.size() <= arguments.size()) {
             "Number of arguments should not be less then number of parameters, but: parameters=${parameters.size()}, args=${arguments.size()}"
@@ -83,6 +84,9 @@ public class IndexedParametersSubstitution(
     override fun isEmpty(): Boolean = arguments.isEmpty()
 
     override fun get(key: KotlinType): TypeProjection? {
+        //if (key.constructor.declarationDescriptor !is TypeParameterDescriptor) return null
+        return map[key.constructor]
+
         val parameter = key.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return null
         val index = parameter.index
 
