@@ -252,17 +252,14 @@ public class RangeIterationTest {
                 listOf<Float>(6.0.toFloat(), 5.5.toFloat(), 5.0.toFloat(), 4.5.toFloat(), 4.0.toFloat()))
     }
 
-    // 'inexact' means last element is not equal to sequence end
+    // invariant progression.reversed().toList() == progression.toList().reversed() is preserved
+    // 'inexact' means that start of reversed progression is not the end of original progression, but the last element
     @test fun reversedInexactSteppedDownTo() {
-        doTest((8 downTo 3 step 2).reversed(), 3, 8, 2, listOf(3, 5, 7))
-        doTest((8.toByte() downTo 3.toByte() step 2).reversed(), 3, 8, 2, listOf(3, 5, 7))
-        doTest((8.toShort() downTo 3.toShort() step 2).reversed(), 3, 8, 2, listOf(3, 5, 7))
-        doTest((8.toLong() downTo 3.toLong() step 2.toLong()).reversed(), 3.toLong(), 8.toLong(), 2.toLong(), listOf<Long>(3, 5, 7))
+        doTest((8 downTo 3 step 2).reversed(), 4, 8, 2, listOf(4, 6, 8))
+        doTest((8.toByte() downTo 3.toByte() step 2).reversed(), 4, 8, 2, listOf(4, 6, 8))
+        doTest((8.toShort() downTo 3.toShort() step 2).reversed(), 4, 8, 2, listOf(4, 6, 8))
+        doTest((8.toLong() downTo 3.toLong() step 2.toLong()).reversed(), 4.toLong(), 8.toLong(), 2.toLong(), listOf<Long>(4, 6, 8))
 
-        doTest(('d' downTo 'a' step 2).reversed(), 'a', 'd', 2, listOf('a', 'c'))
-
-        doTest((5.8 downTo 4.0 step 0.5).reversed(), 4.0, 5.8, 0.5, listOf(4.0, 4.5, 5.0, 5.5))
-        doTest((5.8.toFloat() downTo 4.0.toFloat() step 0.5.toFloat()).reversed(), 4.0.toFloat(), 5.8.toFloat(), 0.5.toFloat(),
-                listOf<Float>(4.0.toFloat(), 4.5.toFloat(), 5.0.toFloat(), 5.5.toFloat()))
+        doTest(('d' downTo 'a' step 2).reversed(), 'b', 'd', 2, listOf('b', 'd'))
     }
 }
