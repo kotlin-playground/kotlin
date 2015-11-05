@@ -260,7 +260,7 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
                         }
 
                         if (functionReferenceTarget != null) {
-                            v.invokestatic(REFLECTION, "function", Type.getMethodDescriptor(K_FUNCTION, FUNCTION_REFERENCE), false);
+                            // v.invokestatic(REFLECTION, "function", Type.getMethodDescriptor(K_FUNCTION, FUNCTION_REFERENCE), false);
                         }
 
                         return Unit.INSTANCE$;

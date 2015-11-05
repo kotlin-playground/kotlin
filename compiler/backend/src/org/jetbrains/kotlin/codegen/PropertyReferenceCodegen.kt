@@ -90,7 +90,7 @@ public class PropertyReferenceCodegen(
     // TODO: ImplementationBodyCodegen.markLineNumberForSyntheticFunction?
     override fun generateBody() {
         generateConstInstance(asmType, wrapperMethod.getReturnType()) { iv ->
-            iv.invokestatic(REFLECTION, wrapperMethod.getName(), wrapperMethod.getDescriptor(), false)
+            // iv.invokestatic(REFLECTION, wrapperMethod.getName(), wrapperMethod.getDescriptor(), false)
         }
 
         generateMethod("property reference init", 0, method("<init>", Type.VOID_TYPE)) {
