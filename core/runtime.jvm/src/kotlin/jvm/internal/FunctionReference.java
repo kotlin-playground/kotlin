@@ -113,7 +113,7 @@ public class FunctionReference extends FunctionImpl implements KFunction {
         }
     }
 
-    private KFunction getReflected() {
+    public KFunction getReflected() {
         compute();
         if (reflected == this) {
             throw new KotlinReflectionNotSupportedError();

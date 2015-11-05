@@ -99,15 +99,11 @@ public abstract class CallableReference implements KCallable {
         }
     }
 
-    protected KCallable getReflected() {
+    public KCallable getReflected() {
         compute();
         if (reflected == this) {
             throw new KotlinReflectionNotSupportedError();
         }
         return reflected;
-    }
-
-    protected static Error error() {
-        throw new KotlinReflectionNotSupportedError();
     }
 }
