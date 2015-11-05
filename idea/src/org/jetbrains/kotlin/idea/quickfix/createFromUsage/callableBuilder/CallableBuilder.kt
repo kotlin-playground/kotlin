@@ -161,7 +161,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
 
     private fun computeTypeCandidates(
             typeInfo: TypeInfo,
-            substitutions: List<JetTypeSubstitution>,
+            substitutions: List<KotlinTypeSubstitution>,
             scope: HierarchicalScope): List<TypeCandidate> {
         if (!typeInfo.substitutionsAllowed) return computeTypeCandidates(typeInfo)
         return typeCandidates.getOrPut(typeInfo) {
@@ -225,7 +225,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
         val typeParameterNameMap: Map<TypeParameterDescriptor, String>
         val receiverTypeCandidate: TypeCandidate?
         val mandatoryTypeParametersAsCandidates: List<TypeCandidate>
-        val substitutions: List<JetTypeSubstitution>
+        val substitutions: List<KotlinTypeSubstitution>
         var finished: Boolean = false
 
         init {
@@ -311,7 +311,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
                 fakeFunction = null
                 mandatoryTypeParametersAsCandidates = Collections.emptyList()
             }
-            substitutions = substitutionMap.map { JetTypeSubstitution(it.key, it.value) }
+            substitutions = substitutionMap.map { KotlinTypeSubstitution(it.key, it.value) }
 
             callableInfo.parameterInfos.forEach {
                 computeTypeCandidates(it.typeInfo, substitutions, scope)
