@@ -123,12 +123,12 @@ public class RangeIterationJVMTest {
     }
 
     @test fun inexactToMaxValue() {
-        doTest((MaxI - 5)..MaxI step 3, MaxI - 5, MaxI, 3, listOf(MaxI - 5, MaxI - 2))
-        doTest((MaxB - 5).toByte()..MaxB step 3, (MaxB - 5).toInt(), MaxB.toInt(), 3, listOf((MaxB - 5).toInt(), (MaxB - 2).toInt()))
-        doTest((MaxS - 5).toShort()..MaxS step 3, (MaxS - 5).toInt(), MaxS.toInt(), 3, listOf((MaxS - 5).toInt(), (MaxS - 2).toInt()))
-        doTest((MaxL - 5).toLong()..MaxL step 3, (MaxL - 5).toLong(), MaxL, 3.toLong(), listOf((MaxL - 5).toLong(), (MaxL - 2).toLong()))
+        doTest((MaxI - 5)..MaxI step 3, MaxI - 5, MaxI - 2, 3, listOf(MaxI - 5, MaxI - 2))
+        doTest((MaxB - 5).toByte()..MaxB step 3, (MaxB - 5).toInt(), (MaxB - 2).toInt(), 3, listOf((MaxB - 5).toInt(), (MaxB - 2).toInt()))
+        doTest((MaxS - 5).toShort()..MaxS step 3, (MaxS - 5).toInt(), (MaxS - 2).toInt(), 3, listOf((MaxS - 5).toInt(), (MaxS - 2).toInt()))
+        doTest((MaxL - 5).toLong()..MaxL step 3, (MaxL - 5).toLong(), (MaxL - 2).toLong(), 3.toLong(), listOf((MaxL - 5).toLong(), (MaxL - 2).toLong()))
 
-        doTest((MaxC - 5)..MaxC step 3, (MaxC - 5), MaxC, 3, listOf((MaxC - 5), (MaxC - 2)))
+        doTest((MaxC - 5)..MaxC step 3, (MaxC - 5), (MaxC - 2), 3, listOf((MaxC - 5), (MaxC - 2)))
     }
 
     @test fun progressionDownToMinValue() {
@@ -141,11 +141,11 @@ public class RangeIterationJVMTest {
     }
 
     @test fun inexactDownToMinValue() {
-        doTest((MinI + 5) downTo MinI step 3, MinI + 5, MinI, -3, listOf(MinI + 5, MinI + 2))
-        doTest((MinB + 5).toByte() downTo MinB step 3, (MinB + 5).toInt(), MinB.toInt(), -3, listOf((MinB + 5).toInt(), (MinB + 2).toInt()))
-        doTest((MinS + 5).toShort() downTo MinS step 3, (MinS + 5).toInt(), MinS.toInt(), -3, listOf((MinS + 5).toInt(), (MinS + 2).toInt()))
-        doTest((MinL + 5).toLong() downTo MinL step 3, (MinL + 5).toLong(), MinL, -3.toLong(), listOf((MinL + 5).toLong(), (MinL + 2).toLong()))
+        doTest((MinI + 5) downTo MinI step 3, MinI + 5, MinI + 2, -3, listOf(MinI + 5, MinI + 2))
+        doTest((MinB + 5).toByte() downTo MinB step 3, (MinB + 5).toInt(), (MinB + 2).toInt(), -3, listOf((MinB + 5).toInt(), (MinB + 2).toInt()))
+        doTest((MinS + 5).toShort() downTo MinS step 3, (MinS + 5).toInt(), (MinS + 2).toInt(), -3, listOf((MinS + 5).toInt(), (MinS + 2).toInt()))
+        doTest((MinL + 5).toLong() downTo MinL step 3, (MinL + 5).toLong(), (MinL + 2).toLong(), -3.toLong(), listOf((MinL + 5).toLong(), (MinL + 2).toLong()))
 
-        doTest((MinC + 5) downTo MinC step 3, (MinC + 5), MinC, -3, listOf((MinC + 5), (MinC + 2)))
+        doTest((MinC + 5) downTo MinC step 3, (MinC + 5), (MinC + 2), -3, listOf((MinC + 5), (MinC + 2)))
     }
 }
