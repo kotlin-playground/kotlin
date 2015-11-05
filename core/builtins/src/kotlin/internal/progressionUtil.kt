@@ -54,8 +54,11 @@ public fun getProgressionFinalElement(start: Int, end: Int, increment: Int): Int
     if (increment > 0) {
         return end - differenceModulo(end, start, increment)
     }
-    else {
+    else if (increment < 0) {
         return end + differenceModulo(start, end, -increment)
+    }
+    else {
+        throw IllegalArgumentException("Increment is zero.")
     }
 }
 
@@ -76,7 +79,10 @@ public fun getProgressionFinalElement(start: Long, end: Long, increment: Long): 
     if (increment > 0) {
         return end - differenceModulo(end, start, increment)
     }
-    else {
+    else if (increment < 0) {
         return end + differenceModulo(start, end, -increment)
+    }
+    else {
+        throw IllegalArgumentException("Increment is zero.")
     }
 }
