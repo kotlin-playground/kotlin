@@ -24,8 +24,10 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings({"unchecked", "NullableProblems"})
 public class FunctionReference extends FunctionImpl implements KFunction {
     private final int arity;
+    private KFunction reflected;
 
     public FunctionReference(int arity) {
         this.arity = arity;
@@ -39,45 +41,41 @@ public class FunctionReference extends FunctionImpl implements KFunction {
     // Most of the following methods are copies from CallableReference, since this class cannot inherit from it
 
     public KDeclarationContainer getOwner() {
-        throw error();
+        throw new AbstractMethodError();
     }
 
     @Override
     public String getName() {
-        throw error();
+        throw new AbstractMethodError();
     }
 
     public String getSignature() {
-        throw error();
+        throw new AbstractMethodError();
     }
 
     @Override
     public List<KParameter> getParameters() {
-        throw error();
+        return getReflected().getParameters();
     }
 
     @Override
     public KType getReturnType() {
-        throw error();
+        return getReflected().getReturnType();
     }
 
     @Override
     public List<Annotation> getAnnotations() {
-        throw error();
+        return getReflected().getAnnotations();
     }
 
     @Override
     public Object call(@NotNull Object... args) {
-        throw error();
+        return getReflected().call(args);
     }
 
     @Override
     public Object callBy(@NotNull Map args) {
-        throw error();
-    }
-
-    protected static Error error() {
-        throw new KotlinReflectionNotSupportedError();
+        return getReflected().callBy(args);
     }
 
     @Override
@@ -98,9 +96,28 @@ public class FunctionReference extends FunctionImpl implements KFunction {
 
     @Override
     public String toString() {
+        compute();
+        if (reflected != this) {
+            return reflected.toString();
+        }
+
         // TODO: consider adding the class name to toString() for constructors
         return "<init>".equals(getName())
                ? "constructor" + Reflection.REFLECTION_NOT_AVAILABLE
                : "function " + getName() + Reflection.REFLECTION_NOT_AVAILABLE;
+    }
+
+    private void compute() {
+        if (reflected == null) {
+            reflected = Reflection.function(this);
+        }
+    }
+
+    private KFunction getReflected() {
+        compute();
+        if (reflected == this) {
+            throw new KotlinReflectionNotSupportedError();
+        }
+        return reflected;
     }
 }

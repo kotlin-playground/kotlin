@@ -37,6 +37,11 @@ public abstract class PropertyReference extends CallableReference implements KPr
 
     @Override
     public String toString() {
+        compute();
+        if (reflected != this) {
+            return reflected.toString();
+        }
+
         return "property " + getName() + Reflection.REFLECTION_NOT_AVAILABLE;
     }
 }
