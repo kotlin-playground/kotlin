@@ -1,0 +1,1 @@
+java -cp "release/lib/*:build/classes/main" zircle.HelloKt

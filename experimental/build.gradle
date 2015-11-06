@@ -10,11 +10,12 @@ buildscript {
 	}
 }
 
+apply plugin: "idea"
 apply plugin: "kotlin"
 apply plugin: "application"
 
-// mainClassName = "zircle.HelloKt"
-// defaultTasks "run"
+mainClassName = "zircle.HelloKt"
+defaultTasks "run"
 
 repositories {
 	mavenCentral()
@@ -31,4 +32,9 @@ dependencies {
 
 task wrapper(type: Wrapper) {
 	gradleVersion = "2.7"
+}
+
+task copyToLib(type: Copy) {
+    into "release/lib"
+    from configurations.runtime
 }
