@@ -35,6 +35,7 @@ import org.jetbrains.jps.incremental.fs.CompilationRound
 import org.jetbrains.jps.incremental.java.JavaBuilder
 import org.jetbrains.jps.incremental.messages.BuildMessage
 import org.jetbrains.jps.incremental.messages.CompilerMessage
+import org.jetbrains.jps.incremental.storage.BuildDataManager
 import org.jetbrains.jps.model.JpsProject
 import org.jetbrains.jps.model.JpsSimpleElement
 import org.jetbrains.jps.model.ex.JpsElementChildRoleBase
@@ -151,13 +152,7 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
         messageCollector.report(INFO, "Kotlin JPS plugin version " + KotlinVersion.VERSION, CompilerMessageLocation.NO_LOCATION)
 
         val project = projectDescriptor.project
-
-        val lookupTracker =
-                project.container.getChild(LOOKUP_TRACKER)?.let {
-                    assert("true".equals(System.getProperty("kotlin.jps.tests"), ignoreCase = true)) { "LOOKUP_TRACKER allowed only for jps tests" }
-                    it.data
-                } ?: LookupTracker.DO_NOTHING
-
+        val lookupTracker = getLookupTracker(project)
         val incrementalCaches = getIncrementalCaches(chunk, context)
         val environment = createCompileEnvironment(incrementalCaches, lookupTracker, context)
         if (!environment.success()) {
@@ -170,7 +165,6 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
 
         val allCompiledFiles = getAllCompiledFilesContainer(context)
         val filesToCompile = KotlinSourceFileCollector.getDirtySourceFiles(dirtyFilesHolder)
-
         val start = System.nanoTime()
         val outputItemCollector = doCompileModuleChunk(allCompiledFiles, chunk, commonArguments, context, dirtyFilesHolder,
                                                        environment, filesToCompile, incrementalCaches, messageCollector, project)
@@ -180,7 +174,6 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
         if (outputItemCollector == null) {
             return NOTHING_DONE
         }
-
 
         val compilationErrors = Utils.ERRORS_DETECTED_KEY[context, false]
         if (compilationErrors) {
@@ -203,6 +196,7 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
                 val generatedClasses = generatedFiles.filterIsInstance<GeneratedJvmClass>()
                 val info = updateKotlinIncrementalCache(compilationErrors, incrementalCaches, generatedFiles, chunk)
                 updateJavaMappings(chunk, compilationErrors, context, dirtyFilesHolder, filesToCompile, generatedClasses)
+                updateLookupStorage(chunk, lookupTracker, dataManager, dirtyFilesHolder, filesToCompile)
                 info
             }
         }
@@ -472,6 +466,26 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
         return changesInfo
     }
 
+    private fun updateLookupStorage(
+            chunk: ModuleChunk,
+            lookupTracker: LookupTracker,
+            dataManager: BuildDataManager,
+            dirtyFilesHolder: DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget>,
+            filesToCompile: MultiMap<ModuleBuildTarget, File>
+    ) {
+        if (!IncrementalCompilation.isExperimental()) return
+
+        if (lookupTracker !is LookupTrackerImpl) throw AssertionError("Lookup tracker is expected to be LookupTrackerImpl, got ${lookupTracker.javaClass}")
+
+        val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, LookupStorageProvider)
+
+        filesToCompile.values().forEach { lookupStorage.removeLookupsFrom(it) }
+        val removedFiles = chunk.targets.flatMap { KotlinSourceFileCollector.getRemovedKotlinFiles(dirtyFilesHolder, it) }
+        removedFiles.forEach { lookupStorage.removeLookupsFrom(it) }
+
+        lookupTracker.lookups.entrySet().forEach { lookupStorage.add(it.key, it.value) }
+    }
+
     private fun File.isModuleMappingFile() = extension == ModuleMapping.MAPPING_FILE_EXT && parentFile.name == "META-INF"
 
     // if null is returned, nothing was done
@@ -627,6 +641,22 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
 
 private val Iterable<BuildTarget<*>>.moduleTargets: Iterable<ModuleBuildTarget>
     get() = filterIsInstance(javaClass<ModuleBuildTarget>())
+
+private fun getLookupTracker(project: JpsProject): LookupTracker {
+    var lookupTracker = LookupTracker.DO_NOTHING
+
+    if ("true".equals(System.getProperty("kotlin.jps.tests"), ignoreCase = true)) {
+        val testTracker = project.container.getChild(KotlinBuilder.LOOKUP_TRACKER)?.data
+
+        if (testTracker != null) {
+            lookupTracker = testTracker
+        }
+    }
+
+    if (IncrementalCompilation.isExperimental()) return LookupTrackerImpl(lookupTracker)
+
+    return lookupTracker
+}
 
 private fun getIncrementalCaches(chunk: ModuleChunk, context: CompileContext): Map<ModuleBuildTarget, IncrementalCacheImpl> {
     val dataManager = context.projectDescriptor.dataManager
