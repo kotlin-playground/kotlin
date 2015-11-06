@@ -2,3 +2,7 @@ build
 target
 .gradle
 release
+.idea
+*.iml
+*.ipr
+*.iws
